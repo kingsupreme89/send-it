@@ -16,6 +16,7 @@ import { HeadToHead } from './dashboard/HeadToHead'
 import { Trends } from './dashboard/Trends'
 import { PlayerHistory } from './dashboard/PlayerHistory'
 import { PlayerProfile } from './dashboard/PlayerProfile'
+import { TodayStreakCard } from './dashboard/TodayStreakCard'
 import { PlayerAvatar } from './components/PlayerAvatar'
 import { TeamBadge } from './components/TeamBadge'
 import { KSNLogo } from './components/KSNLogo'
@@ -23,6 +24,8 @@ import { Ticker } from './components/Ticker'
 import { AmbientBackground } from './components/AmbientBackground'
 import { PageTransition } from './components/PageTransition'
 import { WinCelebration, type CelebrationPayload } from './components/WinCelebration'
+import { OnboardingGuide } from './components/OnboardingGuide'
+import { SettingsPanel } from './components/SettingsPanel'
 import { NFL_TEAMS_BY_ID } from './constants/nflTeams'
 import { HomeIcon, PlusCircleIcon, CompareIcon, TrendsIcon, UserIcon } from './components/icons'
 
@@ -50,6 +53,7 @@ function AppShell({ uid }: { uid: string }) {
   const [tab, setTab] = useState<Tab>('home')
   const [detailPlayerUid, setDetailPlayerUid] = useState<string | null>(null)
   const [celebration, setCelebration] = useState<CelebrationPayload | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   useTeamTheme(profile?.favoriteTeam)
 
@@ -84,29 +88,38 @@ function AppShell({ uid }: { uid: string }) {
   const pageId = tab === 'home' && detailPlayerUid ? `profile-${detailPlayerUid}` : tab
 
   return (
-    <div className="flex min-h-screen flex-col pb-28">
+    <div className="flex min-h-dvh flex-col overflow-x-hidden pb-28">
       <AmbientBackground />
 
-      <header className="glass-strong sticky top-0 z-40 border-b border-[var(--border)]">
-        <div className="flex items-center justify-between px-4 py-3">
+      <header className="glass-strong sticky top-0 z-40 border-b border-[var(--border)] backdrop-blur-xl">
+        <div className="flex items-center justify-between px-3.5 py-3 sm:px-4">
           <div className="flex items-center gap-2.5">
             <KSNLogo height={22} />
             <div className="h-5 w-px bg-white/15" />
             <TeamBadge team={profile.favoriteTeam ? NFL_TEAMS_BY_ID[profile.favoriteTeam] : null} size={32} />
             <Wordmark />
           </div>
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            onClick={() => handleTabChange('me')}
-            className="flex items-center gap-2 rounded-full ring-2 ring-white/10"
-          >
-            <PlayerAvatar photoURL={profile.photoURL} displayName={profile.displayName} size={34} />
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setShowSettings(true)}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-[var(--text-muted)]"
+            >
+              Settings
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => handleTabChange('me')}
+              className="flex items-center gap-2 rounded-full ring-2 ring-white/10"
+            >
+              <PlayerAvatar photoURL={profile.photoURL} displayName={profile.displayName} size={34} />
+            </motion.button>
+          </div>
         </div>
         <Ticker />
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-5">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3.5 py-4 sm:px-4 sm:py-5">
         <PageTransition id={pageId}>
           {tab === 'home' && detailPlayerUid ? (
             <PlayerProfile
@@ -116,6 +129,7 @@ function AppShell({ uid }: { uid: string }) {
             />
           ) : tab === 'home' ? (
             <div className="flex flex-col gap-4">
+              <TodayStreakCard player={profile} />
               <WeeklyChallengeCard onSelectPlayer={handleSelectPlayer} />
               <RivalryStrip onSelectPlayer={handleSelectPlayer} />
               <WeeklyRecapCard onSelectPlayer={handleSelectPlayer} />
@@ -138,7 +152,7 @@ function AppShell({ uid }: { uid: string }) {
         </PageTransition>
       </main>
 
-      <nav className="glass-strong fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-0.5 rounded-full p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+      <nav className="glass-strong fixed bottom-3 left-1/2 z-40 flex -translate-x-1/2 gap-0.5 rounded-full p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
         {TABS.map((t) => {
           const active = tab === t.id
           return (
@@ -170,6 +184,8 @@ function AppShell({ uid }: { uid: string }) {
         })}
       </nav>
 
+      <OnboardingGuide />
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       <WinCelebration data={celebration} onDone={() => setCelebration(null)} />
     </div>
   )

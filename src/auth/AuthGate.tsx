@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useAuth } from './useAuth'
 import { useProfile } from '../profile/useProfile'
-import { SQUAD } from '../constants/squad'
 import { DEFAULT_PASSWORD, MIN_PASSWORD_LENGTH } from '../constants/auth'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -105,7 +104,7 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const canSubmit = username !== '' && password !== '' && !submitting
+  const canSubmit = username.trim() !== '' && password !== '' && !submitting
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,20 +144,14 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
           <label className="flex flex-col gap-1 text-sm normal-case tracking-normal">
             <span className="font-medium text-[var(--text)]">Who are you?</span>
-            <select
+            <input
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="glass-input rounded-xl px-3 py-2.5 text-[var(--text)]"
-            >
-              <option value="" disabled>
-                Select your name
-              </option>
-              {SQUAD.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              placeholder="Enter any name"
+              autoComplete="username"
+            />
           </label>
 
           <label className="flex flex-col gap-1 text-sm normal-case tracking-normal">
@@ -174,8 +167,8 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
           </label>
 
           <p className="text-left text-xs normal-case tracking-normal text-[var(--text-muted)]">
-            First time? Use <span className="font-semibold text-[var(--text)]">{DEFAULT_PASSWORD}</span> — you'll
-            be asked to set a new password right after.
+            Any name works. First time? Use <span className="font-semibold text-[var(--text)]">{DEFAULT_PASSWORD}</span> —
+            you'll be asked to set a new password right after.
           </p>
 
           {error && <p className="text-xs font-medium text-red-400">{error}</p>}

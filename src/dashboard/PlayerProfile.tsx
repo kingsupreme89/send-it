@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useGames } from '../games/useGames'
 import { usePlayers } from '../players/usePlayers'
+import { useAuth } from '../auth/useAuth'
 import { updateProfile } from '../profile/useProfile'
 import { Card } from '../components/Card'
 import { NetworkHeading } from '../components/NetworkHeading'
@@ -60,11 +61,14 @@ function NotificationToggle() {
 }
 
 function ProfileEditor({ me }: { me: Player }) {
+  const { logOut } = useAuth()
   const [displayName, setDisplayName] = useState(me.displayName)
   const [hometown, setHometown] = useState(me.hometown ?? '')
   const [favoriteTeam, setFavoriteTeam] = useState<TeamId | null>(me.favoriteTeam)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState<string | null>(null)
 
   useEffect(() => {
     setDisplayName(me.displayName)
@@ -82,6 +86,19 @@ function ProfileEditor({ me }: { me: Player }) {
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleSignOut = async () => {
+    setSignOutError(null)
+    setSigningOut(true)
+    try {
+      await logOut()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unable to sign out right now.'
+      setSignOutError(message)
+    } finally {
+      setSigningOut(false)
+    }
   }
 
   return (
@@ -114,6 +131,13 @@ function ProfileEditor({ me }: { me: Player }) {
         <Button onClick={handleSave} disabled={!dirty || saving} className="self-start">
           {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save changes'}
         </Button>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" onClick={handleSignOut} disabled={signingOut} className="self-start">
+            {signingOut ? 'Signing out...' : 'Sign out'}
+          </Button>
+        </div>
+        {signOutError && <p className="text-xs font-medium text-red-400">{signOutError}</p>}
 
         <NotificationToggle />
       </div>

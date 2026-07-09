@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePlayers } from '../players/usePlayers'
 import { logGame } from './useLogGame'
 import { GAME_MODES, MADDEN_VERSIONS, emptyGameStatLine, type GameMode, type GameStatLine, type MaddenVersion } from '../types'
+import { extractGameDataFromImage } from '../utils/ocrStats'
 import type { TeamId } from '../constants/nflTeams'
 import { TeamPicker } from '../components/TeamPicker'
 import { NetworkHeading } from '../components/NetworkHeading'
@@ -22,9 +23,11 @@ export function LogGameForm({
   const { players } = usePlayers()
   const [gameMode, setGameMode] = useState<GameMode>('1v1_regular')
   const [maddenVersion, setMaddenVersion] = useState<MaddenVersion>('madden27')
+  const [uploaderId, setUploaderId] = useState<string | null>(currentUid)
   const [teammateId, setTeammateId] = useState<string | null>(null)
   const [opponent1Id, setOpponent1Id] = useState<string | null>(null)
   const [opponent2Id, setOpponent2Id] = useState<string | null>(null)
+  const [challengerId, setChallengerId] = useState<string | null>(null)
   const [winnerTeam, setWinnerTeam] = useState<TeamId | null>(null)
   const [loserTeam, setLoserTeam] = useState<TeamId | null>(null)
   const [winnerScore, setWinnerScore] = useState('')
@@ -34,17 +37,20 @@ export function LogGameForm({
   const [clipUrl, setClipUrl] = useState('')
   const [clipPhoto, setClipPhoto] = useState<File | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [parsingPhoto, setParsingPhoto] = useState(false)
+  const [parseMessage, setParseMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   const is2v2 = gameMode === '2v2_regular'
 
+  const uploader = uploaderId ?? currentUid
   const winnerIds = useMemo(
-    () => [currentUid, ...(is2v2 && teammateId ? [teammateId] : [])],
-    [currentUid, is2v2, teammateId],
+    () => [uploader, ...(is2v2 && teammateId ? [teammateId] : [])],
+    [uploader, is2v2, teammateId],
   )
   const loserIds = useMemo(
-    () => [opponent1Id, ...(is2v2 ? [opponent2Id] : [])].filter((id): id is string => !!id),
-    [opponent1Id, opponent2Id, is2v2],
+    () => [challengerId ?? opponent1Id, ...(is2v2 ? [opponent2Id] : [])].filter((id): id is string => !!id),
+    [challengerId, opponent1Id, opponent2Id, is2v2],
   )
 
   const participantIds = [...winnerIds, ...loserIds]
@@ -55,14 +61,79 @@ export function LogGameForm({
     setStatsByUid((prev) => ({ ...prev, [uid]: { ...getStat(uid), [field]: value } }))
   }
 
-  const handlePhotoChange = (file: File | null) => {
-    if (file && !file.type.startsWith('image/')) {
+  const handlePhotoChange = async (file: File | null) => {
+    if (!file) {
+      setClipPhoto(null)
+      setParseMessage(null)
+      return
+    }
+    if (!file.type.startsWith('image/')) {
       setPhotoError('Photos only — no videos.')
       setClipPhoto(null)
       return
     }
     setPhotoError(null)
     setClipPhoto(file)
+    setParsingPhoto(true)
+    setParseMessage('Reading the screenshot…')
+    try {
+      const parsed = await extractGameDataFromImage(file)
+      if (parsed.winnerScore !== null && parsed.loserScore !== null) {
+        setWinnerScore(String(parsed.winnerScore))
+        setLoserScore(String(parsed.loserScore))
+      }
+      if (parsed.comebackDeficit !== null) {
+        setComebackDeficit(String(parsed.comebackDeficit))
+      }
+      if (parsed.passingYds !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'passingYds', parsed.passingYds)
+        }
+      }
+      if (parsed.rushingYds !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'rushingYds', parsed.rushingYds)
+        }
+      }
+      if (parsed.interceptions !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'interceptions', parsed.interceptions)
+        }
+      }
+      if (parsed.sacks !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'sacks', parsed.sacks)
+        }
+      }
+      if (parsed.interceptionTDs !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'interceptionTDs', parsed.interceptionTDs)
+        }
+      }
+      if (parsed.kickReturnTDs !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'kickReturnTDs', parsed.kickReturnTDs)
+        }
+      }
+      if (parsed.puntReturnTDs !== null) {
+        const firstUid = participantIds[0]
+        if (firstUid) {
+          setStat(firstUid, 'puntReturnTDs', parsed.puntReturnTDs)
+        }
+      }
+      setParseMessage('Filled in what we could from the photo. Review before saving.')
+    } catch {
+      setPhotoError('We could not read the photo. You can still enter the stats manually.')
+      setParseMessage(null)
+    } finally {
+      setParsingPhoto(false)
+    }
   }
 
   const clipPhotoPreviewUrl = useMemo(() => (clipPhoto ? URL.createObjectURL(clipPhoto) : null), [clipPhoto])
@@ -74,8 +145,9 @@ export function LogGameForm({
 
   const canSubmit =
     winnerIds.every(Boolean) &&
+    uploaderId &&
     (!is2v2 || teammateId) &&
-    opponent1Id &&
+    (challengerId || opponent1Id) &&
     (!is2v2 || opponent2Id) &&
     winnerTeam &&
     loserTeam &&
@@ -102,7 +174,7 @@ export function LogGameForm({
         maddenVersion,
         winnerIds,
         loserIds,
-        loggedBy: currentUid,
+        loggedBy: uploader,
         winnerTeam,
         loserTeam,
         winnerScore: wScore,
@@ -193,9 +265,25 @@ export function LogGameForm({
           />
         )}
 
+        <PlayerPicker
+          players={players}
+          value={uploaderId}
+          onChange={setUploaderId}
+          label="Who is uploading this game?"
+          excludeIds={[teammateId, opponent1Id, opponent2Id, challengerId].filter((x): x is string => !!x)}
+        />
+
+        <PlayerPicker
+          players={players}
+          value={challengerId}
+          onChange={setChallengerId}
+          label="Who was the challenger?"
+          excludeIds={[uploaderId, teammateId, opponent2Id].filter((x): x is string => !!x)}
+        />
+
         <div className="grid grid-cols-2 gap-3">
-          <TeamPicker label="Your team" value={winnerTeam} onChange={setWinnerTeam} />
-          <TeamPicker label="Opponent's team" value={loserTeam} onChange={setLoserTeam} />
+          <TeamPicker label="Uploader's team" value={winnerTeam} onChange={setWinnerTeam} />
+          <TeamPicker label="Challenger's team" value={loserTeam} onChange={setLoserTeam} />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -270,15 +358,18 @@ export function LogGameForm({
           </label>
 
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-[var(--text)]">Add a photo (optional, photos only)</span>
+            <span className="font-medium text-[var(--text)]">Upload or take a photo of the end-of-game stats</span>
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => handlePhotoChange(e.target.files?.[0] ?? null)}
+              capture="environment"
+              onChange={(e) => void handlePhotoChange(e.target.files?.[0] ?? null)}
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]"
             />
           </label>
           {photoError && <p className="text-xs font-medium text-red-400">{photoError}</p>}
+          {parsingPhoto && <p className="text-xs text-[var(--text-muted)]">{parseMessage}</p>}
+          {!parsingPhoto && parseMessage && <p className="text-xs text-[var(--text-muted)]">{parseMessage}</p>}
           {clipPhotoPreviewUrl && (
             <img
               src={clipPhotoPreviewUrl}

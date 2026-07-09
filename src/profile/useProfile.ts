@@ -41,7 +41,7 @@ export async function createProfile(user: User, displayName: string, favoriteTea
     statsByMode,
     teamUsage: {},
     badges: [],
-    mustChangePassword: false,
+    mustChangePassword: true,
     createdAt: Date.now(),
   } satisfies Omit<Player, 'createdAt'> & { createdAt: number })
 }
