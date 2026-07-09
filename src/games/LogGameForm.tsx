@@ -143,6 +143,7 @@ export function LogGameForm({
     }
   }, [clipPhotoPreviewUrl])
 
+  const hasPhoto = Boolean(clipPhoto)
   const canSubmit =
     winnerIds.every(Boolean) &&
     uploaderId &&
@@ -151,8 +152,7 @@ export function LogGameForm({
     (!is2v2 || opponent2Id) &&
     winnerTeam &&
     loserTeam &&
-    winnerScore !== '' &&
-    loserScore !== '' &&
+    (hasPhoto || (winnerScore !== '' && loserScore !== '')) &&
     !submitting
 
   const handleSubmit = async () => {
@@ -164,8 +164,8 @@ export function LogGameForm({
         stats[uid] = getStat(uid)
       })
 
-      const wScore = Number(winnerScore)
-      const lScore = Number(loserScore)
+      const wScore = Number(winnerScore || 0)
+      const lScore = Number(loserScore || 0)
       const deficit = comebackDeficit === '' ? 0 : Number(comebackDeficit)
       const scoreDiff = wScore - lScore
 
