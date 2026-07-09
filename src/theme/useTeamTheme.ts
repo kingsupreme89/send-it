@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { NFL_TEAMS_BY_ID, type TeamId } from '../constants/nflTeams'
 
 const DEFAULT_ACCENT = '#3b82f6'
-const DEFAULT_ACCENT_SECONDARY = '#1e3a8a'
+const DEFAULT_ACCENT_SECONDARY = '#8b5cf6'
 
 export function useTeamTheme(favoriteTeam: TeamId | null | undefined) {
   useEffect(() => {

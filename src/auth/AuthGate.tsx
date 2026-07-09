@@ -3,31 +3,38 @@ import type { ReactNode } from 'react'
 import { useAuth } from './useAuth'
 import { useProfile } from '../profile/useProfile'
 import { SQUAD } from '../constants/squad'
+import { DEFAULT_PASSWORD, MIN_PASSWORD_LENGTH } from '../constants/auth'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { NetworkHeading } from '../components/NetworkHeading'
 import { updateDoc, doc } from 'firebase/firestore'
 import { db } from '../firebase'
 
-function ChangePasswordModal({ onDone }: { onDone: () => void }) {
-  const { changePassword } = useAuth()
-  const { user } = useAuth()
+function ChangePasswordModal() {
+  const { changePassword, user } = useAuth()
   const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const canSubmit = newPw.length >= 6 && newPw === confirmPw && !saving
+  const tooShort = newPw.length > 0 && newPw.length < MIN_PASSWORD_LENGTH
+  const isDefault = newPw === DEFAULT_PASSWORD
+  const mismatch = confirmPw.length > 0 && newPw !== confirmPw
+  const canSubmit =
+    newPw.length >= MIN_PASSWORD_LENGTH &&
+    newPw === confirmPw &&
+    newPw !== DEFAULT_PASSWORD &&
+    !saving
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!canSubmit || !user) return
     setSaving(true)
     setError(null)
     try {
       await changePassword(newPw)
-      // Clear the mustChangePassword flag in Firestore
+      // Clear the mustChangePassword flag — profile listener unlocks the app
       await updateDoc(doc(db, 'players', user.uid), { mustChangePassword: false })
-      onDone()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to change password'
       setError(message)
@@ -37,24 +44,26 @@ function ChangePasswordModal({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <Card className="w-full max-w-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
+      <Card className="w-full max-w-sm shine-border" strong hover={false}>
         <div className="mb-1">
           <NetworkHeading size="md">Set your password</NetworkHeading>
         </div>
-        <p className="mb-4 text-sm text-[var(--text-muted)]">
-          This is your first sign-in — you need to change the default password before continuing.
+        <p className="mb-4 text-sm normal-case tracking-normal text-[var(--text-muted)]">
+          First sign-in — change the default password before you can use the app.
         </p>
 
-        <div className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-[var(--text)]">New password</span>
             <input
               type="password"
               value={newPw}
               onChange={(e) => setNewPw(e.target.value)}
+              autoFocus
+              autoComplete="new-password"
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
-              placeholder="At least 6 characters"
+              placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
             />
           </label>
 
@@ -64,20 +73,27 @@ function ChangePasswordModal({ onDone }: { onDone: () => void }) {
               type="password"
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
+              autoComplete="new-password"
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
               placeholder="Re-enter new password"
             />
           </label>
 
-          {newPw && confirmPw && newPw !== confirmPw && (
-            <p className="text-xs font-medium text-red-400">Passwords don't match</p>
+          {tooShort && (
+            <p className="text-xs font-medium text-red-400">
+              Password must be at least {MIN_PASSWORD_LENGTH} characters
+            </p>
           )}
+          {isDefault && (
+            <p className="text-xs font-medium text-red-400">Pick something other than the default password</p>
+          )}
+          {mismatch && <p className="text-xs font-medium text-red-400">Passwords don't match</p>}
           {error && <p className="text-xs font-medium text-red-400">{error}</p>}
 
-          <Button onClick={handleSubmit} disabled={!canSubmit}>
+          <Button type="submit" disabled={!canSubmit}>
             {saving ? 'Saving...' : 'Set password & continue'}
           </Button>
-        </div>
+        </form>
       </Card>
     </div>
   )
@@ -100,8 +116,8 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
       await onSignIn(username, password)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sign-in failed'
-      if (message.includes('invalid-credential') || message.includes('wrong-password')) {
-        setError('Wrong password — try again')
+      if (message.includes('invalid-credential') || message.includes('wrong-password') || message.includes('user-not-found')) {
+        setError(`Wrong password — first login is ${DEFAULT_PASSWORD}, then you'll set a new one`)
       } else if (message.includes('too-many-requests')) {
         setError('Too many attempts — wait a moment and try again')
       } else {
@@ -117,32 +133,22 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
       <img
         src="/icons/icon-512.png"
         alt="Send It!"
-        className="h-20 w-20 rounded-3xl object-cover"
-        style={{ boxShadow: '0 12px 30px -6px color-mix(in srgb, var(--accent) 55%, transparent)' }}
+        className="h-20 w-20 rounded-3xl object-cover ring-2 ring-white/15"
+        style={{ boxShadow: '0 16px 40px -8px color-mix(in srgb, var(--accent) 55%, transparent)' }}
       />
-      <h1
-        style={{
-          fontFamily: 'var(--font-wordmark)',
-          fontSize: '3.25rem',
-          lineHeight: 1,
-          letterSpacing: '0.06em',
-          backgroundImage: 'linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #ffffff))',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-        }}
-      >
-        SEND IT!
-      </h1>
+      <h1 className="gradient-text text-5xl font-extrabold tracking-tight sm:text-6xl">SEND IT!</h1>
+      <p className="max-w-xs text-sm normal-case tracking-normal text-[var(--text-muted)]">
+        Squad stats. Live rivalries. Pure chaos.
+      </p>
 
-      <Card className="w-full max-w-sm">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm">
+      <Card className="w-full max-w-sm shine-border" strong hover={false}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
+          <label className="flex flex-col gap-1 text-sm normal-case tracking-normal">
             <span className="font-medium text-[var(--text)]">Who are you?</span>
             <select
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
+              className="glass-input rounded-xl px-3 py-2.5 text-[var(--text)]"
             >
               <option value="" disabled>
                 Select your name
@@ -155,16 +161,22 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
             </select>
           </label>
 
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1 text-sm normal-case tracking-normal">
             <span className="font-medium text-[var(--text)]">Password</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
+              autoComplete="current-password"
+              className="glass-input rounded-xl px-3 py-2.5 text-[var(--text)] normal-case"
               placeholder="Enter your password"
             />
           </label>
+
+          <p className="text-left text-xs normal-case tracking-normal text-[var(--text-muted)]">
+            First time? Use <span className="font-semibold text-[var(--text)]">{DEFAULT_PASSWORD}</span> — you'll
+            be asked to set a new password right after.
+          </p>
 
           {error && <p className="text-xs font-medium text-red-400">{error}</p>}
 
@@ -204,7 +216,7 @@ export function AuthGate({ children }: { children: (uid: string) => ReactNode })
 
   // First sign-in — force password change before entering the app
   if (profile?.mustChangePassword) {
-    return <ChangePasswordModal onDone={() => {}} />
+    return <ChangePasswordModal />
   }
 
   return <>{children(user.uid)}</>

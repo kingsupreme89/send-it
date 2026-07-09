@@ -31,6 +31,10 @@ service cloud.firestore {
           ('reactions' in resource.data) ? resource.data.reactions : {}
         ).affectedKeys().hasOnly([request.auth.uid]);
 
+      // Squad trash-talk: any signed-in user can append/replace the comments list only.
+      allow update: if request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comments']);
+
       // A participant (or whoever logged it) can correct the result/stats after
       // the fact — winnerIds/loserIds/gameMode/loggedBy stay fixed so it can't be
       // turned into a different game.

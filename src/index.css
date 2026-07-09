@@ -1,41 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0b0c10;
-  --surface: rgba(255, 255, 255, 0.05);
-  --surface-solid: #15171d;
-  --text: #f5f6f8;
-  --text-muted: #9aa0ad;
-  --border: rgba(255, 255, 255, 0.09);
+  --bg: #05060a;
+  --bg-elevated: #0c0e14;
+  --surface: rgba(255, 255, 255, 0.055);
+  --surface-strong: rgba(255, 255, 255, 0.09);
+  --surface-solid: rgba(18, 20, 28, 0.72);
+  --text: #f4f6fb;
+  --text-muted: #9aa3b5;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
   --accent: #3b82f6;
   --accent-secondary: #8b5cf6;
-  --font-display: 'Black Ops One', system-ui, sans-serif;
-  --font-wordmark: 'Russo One', system-ui, sans-serif;
+  --success: #34d399;
+  --danger: #fb7185;
+  --warning: #fbbf24;
+  --glass-blur: 24px;
+  --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --radius-card: 1.35rem;
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-wordmark: 'Outfit', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
-
-  /* KSN header chrome — stays fixed black; red accents now follow the team theme below. */
-  --network-black: #0d0d0d;
-}
-
-.ticker-track {
-  display: inline-flex;
-  white-space: nowrap;
-  animation: ticker-scroll 30s linear infinite;
-}
-
-@keyframes ticker-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+  --network-black: rgba(8, 9, 14, 0.55);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 * {
   box-sizing: border-box;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 html {
@@ -46,22 +37,147 @@ body {
   margin: 0;
   min-height: 100svh;
   background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 180% 65% at 50% 115%, color-mix(in srgb, var(--accent) 65%, transparent), transparent),
-    radial-gradient(ellipse 90% 45% at 100% 5%, color-mix(in srgb, var(--accent-secondary) 25%, transparent), transparent 70%);
-  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
   min-height: 100svh;
+  isolation: isolate;
+}
+
+/* Ambient mesh background */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg);
+}
+
+.ambient-bg::before,
+.ambient-bg::after,
+.ambient-orb {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.ambient-bg::before {
+  width: min(70vw, 520px);
+  height: min(70vw, 520px);
+  top: -12%;
+  right: -10%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, transparent), transparent 70%);
+  animation: orb-float-a 18s ease-in-out infinite;
+}
+
+.ambient-bg::after {
+  width: min(80vw, 600px);
+  height: min(80vw, 600px);
+  bottom: -20%;
+  left: -15%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-secondary) 55%, transparent), transparent 70%);
+  animation: orb-float-b 22s ease-in-out infinite;
+}
+
+.ambient-orb {
+  width: min(45vw, 340px);
+  height: min(45vw, 340px);
+  top: 40%;
+  left: 35%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, #fff 5%), transparent 70%);
+  opacity: 0.25;
+  animation: orb-float-c 26s ease-in-out infinite;
+}
+
+@keyframes orb-float-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-8%, 12%) scale(1.08); }
+}
+@keyframes orb-float-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10%, -10%) scale(1.12); }
+}
+@keyframes orb-float-c {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-12%, 8%); }
+}
+
+/* Glass utilities */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-glass), var(--glass-shine);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+
+.glass-strong {
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-glass), var(--glass-shine);
+  backdrop-filter: blur(32px) saturate(160%);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  color: var(--text);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.glass-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 70%, white) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  background: rgba(255, 255, 255, 0.07);
+  outline: none;
+}
+
+.gradient-text {
+  background-image: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent-secondary) 70%, white));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shine-border {
+  position: relative;
+}
+.shine-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.35),
+    transparent 40%,
+    transparent 60%,
+    color-mix(in srgb, var(--accent) 50%, transparent)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  letter-spacing: 0.01em;
-  font-weight: 400;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 ::selection {
@@ -69,14 +185,37 @@ h1, h2, h3, h4 {
 }
 
 input,
-select {
+select,
+textarea {
   outline: none;
+  font-family: inherit;
+}
+
+input.glass-input,
+select.glass-input,
+textarea.glass-input,
+input[type='text'],
+input[type='password'],
+input[type='number'],
+input[type='url'],
+input[type='file'],
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 input:focus,
-select:focus {
-  border-color: var(--accent) !important;
+select:focus,
+textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 70%, white) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+select option {
+  background: #12141c;
+  color: var(--text);
 }
 
 ::-webkit-scrollbar {
@@ -84,6 +223,65 @@ select:focus {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Ticker */
+.ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ticker-scroll 36s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Confetti bits for win celebration */
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0), 110vh, 0) rotate(720deg); opacity: 0; }
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -5vh;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  animation: confetti-fall 2.4s ease-in forwards;
+  opacity: 0.9;
+}
+
+/* Shimmer for challenge / POTW */
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.shimmer-accent {
+  background: linear-gradient(
+    110deg,
+    color-mix(in srgb, var(--accent) 40%, transparent) 0%,
+    color-mix(in srgb, var(--accent-secondary) 50%, white 10%) 45%,
+    color-mix(in srgb, var(--accent) 40%, transparent) 90%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-bg::before,
+  .ambient-bg::after,
+  .ambient-orb,
+  .ticker-track,
+  .shimmer-accent,
+  .confetti-piece {
+    animation: none !important;
+  }
 }

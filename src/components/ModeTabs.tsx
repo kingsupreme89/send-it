@@ -1,26 +1,33 @@
+import { motion } from 'motion/react'
 import { GAME_MODES, type GameMode } from '../types'
 
 export function ModeTabs({ value, onChange }: { value: GameMode; onChange: (mode: GameMode) => void }) {
   return (
-    <div className="flex gap-1 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-1 backdrop-blur-xl">
-      {GAME_MODES.map((m) => (
-        <button
-          key={m.id}
-          onClick={() => onChange(m.id)}
-          className="flex-1 rounded-xl px-2 py-1.5 text-xs font-semibold transition-all duration-150"
-          style={
-            value === m.id
-              ? {
+    <div className="glass flex gap-1 rounded-2xl p-1">
+      {GAME_MODES.map((m) => {
+        const active = value === m.id
+        return (
+          <button
+            key={m.id}
+            onClick={() => onChange(m.id)}
+            className="relative flex-1 rounded-xl px-2 py-2 text-[11px] font-semibold transition-colors sm:text-xs"
+            style={{ color: active ? 'white' : 'var(--text-muted)' }}
+          >
+            {active && (
+              <motion.span
+                layoutId="mode-tab-pill"
+                className="absolute inset-0 rounded-xl"
+                style={{
                   backgroundImage: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))',
-                  color: 'white',
-                  boxShadow: '0 4px 14px -2px color-mix(in srgb, var(--accent) 50%, transparent)',
-                }
-              : { color: 'var(--text-muted)' }
-          }
-        >
-          {m.label}
-        </button>
-      ))}
+                  boxShadow: '0 4px 16px -4px color-mix(in srgb, var(--accent) 55%, transparent)',
+                }}
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span className="relative z-10">{m.label}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }

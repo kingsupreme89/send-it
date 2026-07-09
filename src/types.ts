@@ -16,6 +16,13 @@ export const MADDEN_VERSIONS: { id: MaddenVersion; label: string }[] = [
 
 export const REACTION_EMOJIS = ['🔥', '😭', '💀', '😂', '👑'] as const
 
+export interface TrashTalkComment {
+  id: string
+  uid: string
+  text: string
+  createdAt: number
+}
+
 export interface PlayerStats {
   wins: number
   losses: number
@@ -96,6 +103,7 @@ export interface GameDoc {
   isComeback: boolean
   stats: Record<string, GameStatLine>
   reactions?: Record<string, string>
+  comments?: TrashTalkComment[]
   clipUrl?: string
   photoUrl?: string
 }

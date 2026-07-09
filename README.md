@@ -31,7 +31,9 @@ Players are a closed roster in `src/constants/squad.ts`. Sign-in is email/passwo
 
 1. Enable **Email/Password** in Firebase Auth.
 2. Fill `.env` from the Firebase console.
-3. Run `node scripts/seedUsers.mjs` (default password `1234`; first login forces a change).
+3. Run `node scripts/seedUsers.mjs`.
+
+**First login:** password is `123456` (Firebase requires at least 6 characters — `1234` is rejected). The app then forces a password change before entering the app.
 
 ## Deploy
 

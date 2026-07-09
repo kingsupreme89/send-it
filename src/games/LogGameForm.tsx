@@ -10,7 +10,15 @@ import { StatInput } from '../components/StatInput'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 
-export function LogGameForm({ currentUid, onLogged }: { currentUid: string; onLogged: () => void }) {
+import type { CelebrationPayload } from '../components/WinCelebration'
+
+export function LogGameForm({
+  currentUid,
+  onLogged,
+}: {
+  currentUid: string
+  onLogged: (celebration: CelebrationPayload) => void
+}) {
   const { players } = usePlayers()
   const [gameMode, setGameMode] = useState<GameMode>('1v1_regular')
   const [maddenVersion, setMaddenVersion] = useState<MaddenVersion>('madden27')
@@ -84,6 +92,11 @@ export function LogGameForm({ currentUid, onLogged }: { currentUid: string; onLo
         stats[uid] = getStat(uid)
       })
 
+      const wScore = Number(winnerScore)
+      const lScore = Number(loserScore)
+      const deficit = comebackDeficit === '' ? 0 : Number(comebackDeficit)
+      const scoreDiff = wScore - lScore
+
       await logGame({
         gameMode,
         maddenVersion,
@@ -92,14 +105,21 @@ export function LogGameForm({ currentUid, onLogged }: { currentUid: string; onLo
         loggedBy: currentUid,
         winnerTeam,
         loserTeam,
-        winnerScore: Number(winnerScore),
-        loserScore: Number(loserScore),
-        comebackDeficit: comebackDeficit === '' ? 0 : Number(comebackDeficit),
+        winnerScore: wScore,
+        loserScore: lScore,
+        comebackDeficit: deficit,
         stats,
         clipUrl: clipUrl.trim() || undefined,
         clipPhoto,
       })
-      onLogged()
+      onLogged({
+        winnerNames: winnerIds.map(nameFor),
+        loserNames: loserIds.map(nameFor),
+        winnerScore: wScore,
+        loserScore: lScore,
+        isBlowout: scoreDiff > 21,
+        isComeback: deficit >= 17,
+      })
     } finally {
       setSubmitting(false)
     }
