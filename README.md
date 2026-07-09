@@ -1,32 +1,60 @@
-# React + TypeScript + Vite
+# Send It!
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Squad Madden tracker — log games, leaderboards, head-to-head, trends, badges, and weekly recaps.
 
-Currently, two official plugins are available:
+**Stack:** React + TypeScript + Vite · Tailwind CSS · Firebase (Auth, Firestore, Storage) · PWA
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Setup
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd "/Users/user/Claude/Projects/Madden Tracker"
+npm install
+cp .env.example .env   # fill in Firebase web app config
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open the URL Vite prints (usually `http://localhost:5173`).
+
+## Scripts
+
+| Command | What it does |
+|---------|----------------|
+| `npm run dev` | Dev server with HMR |
+| `npm run build` | Typecheck + production build → `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | Oxlint |
+| `node scripts/seedUsers.mjs` | Seed squad auth users + player docs |
+
+## Squad / auth
+
+Players are a closed roster in `src/constants/squad.ts`. Sign-in is email/password with fake emails (`name@madden.local`).
+
+1. Enable **Email/Password** in Firebase Auth.
+2. Fill `.env` from the Firebase console.
+3. Run `node scripts/seedUsers.mjs` (default password `1234`; first login forces a change).
+
+## Deploy
+
+Hosting is configured for the `dist` folder (`firebase.json`). After `npm run build`:
+
+```bash
+npx firebase deploy
+```
+
+Project id: see `.firebaserc` (`send-it-d654a`).
+
+## Project layout
+
+```
+src/
+  auth/          Sign-in gate, password change
+  profile/       Player profile create / update
+  games/         Log / edit games, reactions, clips
+  dashboard/     Feed, leaderboard, H2H, trends, recap
+  achievements/  Badges
+  stories/       Recap copy + share images
+  components/    Shared UI
+  constants/     Squad roster, NFL teams
+public/          Icons, logo, favicon
+scripts/         One-off seed utilities
+```

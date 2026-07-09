@@ -179,7 +179,7 @@ function SquadLogin({ onSignIn }: { onSignIn: (username: string, password: strin
 
 export function AuthGate({ children }: { children: (uid: string) => ReactNode }) {
   const { user, loading, signIn } = useAuth()
-  const { profile } = useProfile(user?.uid ?? null)
+  const { profile, loading: profileLoading } = useProfile(user?.uid ?? null)
 
   if (loading) {
     return (
@@ -194,7 +194,7 @@ export function AuthGate({ children }: { children: (uid: string) => ReactNode })
   }
 
   // Wait for profile to load before deciding whether to show the password change modal
-  if (profile === undefined) {
+  if (profileLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-[var(--text-muted)]">Loading profile...</p>

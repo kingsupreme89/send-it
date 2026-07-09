@@ -7,13 +7,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & build
 node_modules
 dist
 dist-ssr
 *.local
-.env
 
-# Editor directories and files
+# Env (secrets)
+.env
+.env.*
+!.env.example
+
+# Firebase local cache
+.firebase
+
+# Claude / editor local
+.claude/settings.local.json
 .vscode/*
 !.vscode/extensions.json
 .idea

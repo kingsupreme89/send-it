@@ -1,4 +1,4 @@
- have a complete u/**
+/**
  * Seed script — creates Firebase Email/Password auth users + Firestore Player docs
  * for every name in the SQUAD constant.
  *
