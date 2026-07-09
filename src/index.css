@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0c10;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-solid: #15171d;
+  --text: #f5f6f8;
+  --text-muted: #9aa0ad;
+  --border: rgba(255, 255, 255, 0.09);
+  --accent: #3b82f6;
+  --accent-secondary: #8b5cf6;
+  --font-display: 'Black Ops One', system-ui, sans-serif;
+  --font-wordmark: 'Russo One', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* KSN header chrome — stays fixed black; red accents now follow the team theme below. */
+  --network-black: #0d0d0d;
+}
+
+.ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ticker-scroll 30s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 180% 65% at 50% 115%, color-mix(in srgb, var(--accent) 65%, transparent), transparent),
+    radial-gradient(ellipse 90% 45% at 100% 5%, color-mix(in srgb, var(--accent-secondary) 25%, transparent), transparent 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+input,
+select {
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
