@@ -40,6 +40,7 @@ export function LogGameForm({
   const [parsingPhoto, setParsingPhoto] = useState(false)
   const [parseMessage, setParseMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const is2v2 = gameMode === '2v2_regular'
 
@@ -158,6 +159,7 @@ export function LogGameForm({
   const handleSubmit = async () => {
     if (!canSubmit || !winnerTeam || !loserTeam) return
     setSubmitting(true)
+    setSubmitError(null)
     try {
       const stats: Record<string, GameStatLine> = {}
       participantIds.forEach((uid) => {
@@ -192,6 +194,9 @@ export function LogGameForm({
         isBlowout: scoreDiff > 21,
         isComeback: deficit >= 17,
       })
+    } catch (error) {
+      console.error('Failed to log game', error)
+      setSubmitError(error instanceof Error ? error.message : 'We could not save the game right now.')
     } finally {
       setSubmitting(false)
     }
@@ -381,6 +386,8 @@ export function LogGameForm({
             />
           )}
         </div>
+
+        {submitError && <p className="text-xs font-medium text-red-400">{submitError}</p>}
 
         <Button onClick={handleSubmit} disabled={!canSubmit}>
           {submitting ? 'Saving...' : 'Log game'}
