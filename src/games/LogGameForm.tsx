@@ -202,6 +202,9 @@ export function LogGameForm({
       <div className="mb-4">
         <NetworkHeading size="md">Log a game</NetworkHeading>
         <p className="mt-1 text-xs text-[var(--text-muted)]">You won — fill in how it went.</p>
+        <p className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[11px] text-[var(--text-muted)]">
+          You can save a photo-based entry after choosing who uploaded it, who the challenger was, and the teams.
+        </p>
       </div>
 
       <div className="flex flex-col gap-4">
