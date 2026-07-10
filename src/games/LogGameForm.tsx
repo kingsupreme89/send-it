@@ -23,11 +23,11 @@ export function LogGameForm({
   const { players } = usePlayers()
   const [gameMode, setGameMode] = useState<GameMode>('1v1_regular')
   const [maddenVersion, setMaddenVersion] = useState<MaddenVersion>('madden27')
-  const [uploaderId, setUploaderId] = useState<string | null>(currentUid)
+  const [loggerPlayerId, setLoggerPlayerId] = useState<string | null>(currentUid)
   const [teammateId, setTeammateId] = useState<string | null>(null)
   const [opponent1Id, setOpponent1Id] = useState<string | null>(null)
   const [opponent2Id, setOpponent2Id] = useState<string | null>(null)
-  const [challengerId, setChallengerId] = useState<string | null>(null)
+  const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null)
   const [winnerTeam, setWinnerTeam] = useState<TeamId | null>(null)
   const [loserTeam, setLoserTeam] = useState<TeamId | null>(null)
   const [winnerScore, setWinnerScore] = useState('')
@@ -46,14 +46,14 @@ export function LogGameForm({
 
   const is2v2 = gameMode === '2v2_regular'
 
-  const uploader = uploaderId ?? currentUid
+  const loggerPlayer = loggerPlayerId ?? currentUid
   const winnerIds = useMemo(
-    () => [uploader, ...(is2v2 && teammateId ? [teammateId] : [])],
-    [uploader, is2v2, teammateId],
+    () => [loggerPlayer, ...(is2v2 && teammateId ? [teammateId] : [])],
+    [loggerPlayer, is2v2, teammateId],
   )
   const loserIds = useMemo(
-    () => [challengerId ?? opponent1Id, ...(is2v2 ? [opponent2Id] : [])].filter((id): id is string => !!id),
-    [challengerId, opponent1Id, opponent2Id, is2v2],
+    () => [opponentPlayerId ?? opponent1Id, ...(is2v2 ? [opponent2Id] : [])].filter((id): id is string => !!id),
+    [opponentPlayerId, opponent1Id, opponent2Id, is2v2],
   )
 
   const participantIds = [...winnerIds, ...loserIds]
@@ -155,9 +155,9 @@ export function LogGameForm({
   const photoReviewRequired = hasPhoto && parsedPhotoFields !== null
   const canSubmit =
     winnerIds.every(Boolean) &&
-    uploaderId &&
+    loggerPlayerId &&
     (!is2v2 || teammateId) &&
-    (challengerId || opponent1Id) &&
+    (opponentPlayerId || opponent1Id) &&
     (!is2v2 || opponent2Id) &&
     winnerTeam &&
     loserTeam &&
@@ -185,7 +185,7 @@ export function LogGameForm({
         maddenVersion,
         winnerIds,
         loserIds,
-        loggedBy: uploader,
+        loggedBy: loggerPlayer,
         winnerTeam,
         loserTeam,
         winnerScore: wScore,
@@ -217,7 +217,7 @@ export function LogGameForm({
         <NetworkHeading size="md">Log a game</NetworkHeading>
         <p className="mt-1 text-xs text-[var(--text-muted)]">You won — fill in how it went.</p>
         <p className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[11px] text-[var(--text-muted)]">
-          You can save a photo-based entry after choosing who uploaded it, who the challenger was, and the teams.
+          You can save a photo-based entry after choosing who logged it, who the opponent was, and the teams.
         </p>
       </div>
 
@@ -282,21 +282,27 @@ export function LogGameForm({
           />
         )}
 
-        <PlayerPicker
-          players={players}
-          value={uploaderId}
-          onChange={setUploaderId}
-          label="Who is uploading this game?"
-          excludeIds={[teammateId, opponent1Id, opponent2Id, challengerId].filter((x): x is string => !!x)}
-        />
+        <p className="text-[11px] text-[var(--text-muted)]">
+          Anyone can log a game, so pick the player logging it and the opponent before you save.
+        </p>
 
         <PlayerPicker
           players={players}
-          value={challengerId}
-          onChange={setChallengerId}
-          label="Who was the challenger?"
-          excludeIds={[uploaderId, teammateId, opponent2Id].filter((x): x is string => !!x)}
+          value={loggerPlayerId}
+          onChange={setLoggerPlayerId}
+          label="Who is logging this game?"
+          excludeIds={[opponentPlayerId, teammateId, opponent1Id, opponent2Id].filter((x): x is string => !!x)}
         />
+
+        {!is2v2 && (
+          <PlayerPicker
+            players={players}
+            value={opponentPlayerId}
+            onChange={setOpponentPlayerId}
+            label="Who was the opponent?"
+            excludeIds={[loggerPlayerId, teammateId].filter((x): x is string => !!x)}
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <TeamPicker label="Uploader's team" value={winnerTeam} onChange={setWinnerTeam} />
