@@ -27,7 +27,6 @@ export function LogGameForm({
   const [teammateId, setTeammateId] = useState<string | null>(null)
   const [opponent1Id, setOpponent1Id] = useState<string | null>(null)
   const [opponent2Id, setOpponent2Id] = useState<string | null>(null)
-  const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null)
   const [winnerTeam, setWinnerTeam] = useState<TeamId | null>(null)
   const [loserTeam, setLoserTeam] = useState<TeamId | null>(null)
   const [winnerScore, setWinnerScore] = useState('')
@@ -52,8 +51,8 @@ export function LogGameForm({
     [loggerPlayer, is2v2, teammateId],
   )
   const loserIds = useMemo(
-    () => [opponentPlayerId ?? opponent1Id, ...(is2v2 ? [opponent2Id] : [])].filter((id): id is string => !!id),
-    [opponentPlayerId, opponent1Id, opponent2Id, is2v2],
+    () => [opponent1Id, ...(is2v2 ? [opponent2Id] : [])].filter((id): id is string => !!id),
+    [opponent1Id, opponent2Id, is2v2],
   )
 
   const participantIds = [...winnerIds, ...loserIds]
@@ -157,7 +156,7 @@ export function LogGameForm({
     winnerIds.every(Boolean) &&
     loggerPlayerId &&
     (!is2v2 || teammateId) &&
-    (opponentPlayerId || opponent1Id) &&
+    opponent1Id &&
     (!is2v2 || opponent2Id) &&
     winnerTeam &&
     loserTeam &&
@@ -291,18 +290,8 @@ export function LogGameForm({
           value={loggerPlayerId}
           onChange={setLoggerPlayerId}
           label="Who is logging this game?"
-          excludeIds={[opponentPlayerId, teammateId, opponent1Id, opponent2Id].filter((x): x is string => !!x)}
+          excludeIds={[teammateId, opponent1Id, opponent2Id].filter((x): x is string => !!x)}
         />
-
-        {!is2v2 && (
-          <PlayerPicker
-            players={players}
-            value={opponentPlayerId}
-            onChange={setOpponentPlayerId}
-            label="Who was the opponent?"
-            excludeIds={[loggerPlayerId, teammateId].filter((x): x is string => !!x)}
-          />
-        )}
 
         <div className="grid grid-cols-2 gap-3">
           <TeamPicker label="Uploader's team" value={winnerTeam} onChange={setWinnerTeam} />
