@@ -3,21 +3,22 @@ import { useGames } from '../games/useGames'
 import { usePlayers } from '../players/usePlayers'
 import { generateStories } from '../stories/storyGenerator'
 
-export function Ticker() {
+export function Ticker({ claimedTicker }: { claimedTicker?: string | null }) {
   const { games } = useGames(300)
   const { players } = usePlayers()
 
   const stories = useMemo(() => generateStories(games, players).slice(0, 8), [games, players])
 
-  if (stories.length === 0) return null
+  if (stories.length === 0 && !claimedTicker) return null
 
-  const content = stories.map((s) => `${s.emoji} ${s.headline}`).join('     •     ')
+  const headlines = [...(claimedTicker ? [claimedTicker] : []), ...stories.map((s) => s.headline)]
+  const content = headlines.join('     •     ')
 
   return (
-    <div className="overflow-hidden" style={{ backgroundImage: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))' }}>
+    <div className="overflow-hidden border-t border-white/5 bg-black/25">
       <div className="ticker-track py-1.5">
-        <span className="px-4 text-xs font-extrabold text-white">{content}</span>
-        <span className="px-4 text-xs font-extrabold text-white" aria-hidden="true">{content}</span>
+        <span className="px-4 text-[11px] font-bold text-white/55">{content}</span>
+        <span className="px-4 text-[11px] font-bold text-white/55" aria-hidden="true">{content}</span>
       </div>
     </div>
   )

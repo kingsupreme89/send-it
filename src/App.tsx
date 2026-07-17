@@ -7,7 +7,7 @@ import { useProfile } from './profile/useProfile'
 import { CreateProfile } from './profile/CreateProfile'
 import { useTeamTheme } from './theme/useTeamTheme'
 import { LogGameForm } from './games/LogGameForm'
-import { Leaderboard } from './dashboard/Leaderboard'
+import { LeaderboardPreview } from './dashboard/LeaderboardPreview'
 import { Feed } from './dashboard/Feed'
 import { WeeklyRecapCard } from './dashboard/WeeklyRecapCard'
 import { WeeklyChallengeCard } from './dashboard/WeeklyChallengeCard'
@@ -19,13 +19,18 @@ import { PlayerProfile } from './dashboard/PlayerProfile'
 import { TodayStreakCard } from './dashboard/TodayStreakCard'
 import { PlayerAvatar } from './components/PlayerAvatar'
 import { TeamBadge } from './components/TeamBadge'
-import { KSNLogo } from './components/KSNLogo'
+import { TeamPickerSheet } from './components/TeamPickerSheet'
 import { Ticker } from './components/Ticker'
 import { AmbientBackground } from './components/AmbientBackground'
+import { LockerRoomBackground } from './components/LockerRoomBackground'
+import { WeeklyPackCard } from './components/WeeklyPackCard'
+import { PackModal } from './components/PackModal'
 import { PageTransition } from './components/PageTransition'
 import { WinCelebration, type CelebrationPayload } from './components/WinCelebration'
 import { OnboardingGuide } from './components/OnboardingGuide'
 import { SettingsPanel } from './components/SettingsPanel'
+import { claimPackReward } from './achievements/usePackRewards'
+import { updateProfile } from './profile/useProfile'
 import { NFL_TEAMS_BY_ID } from './constants/nflTeams'
 import { HomeIcon, PlusCircleIcon, CompareIcon, TrendsIcon, UserIcon } from './components/icons'
 
@@ -54,6 +59,8 @@ function AppShell({ uid }: { uid: string }) {
   const [detailPlayerUid, setDetailPlayerUid] = useState<string | null>(null)
   const [celebration, setCelebration] = useState<CelebrationPayload | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [showTeamPicker, setShowTeamPicker] = useState(false)
+  const [showPack, setShowPack] = useState(false)
 
   useTeamTheme(profile?.favoriteTeam)
 
@@ -86,20 +93,32 @@ function AppShell({ uid }: { uid: string }) {
   }
 
   const pageId = tab === 'home' && detailPlayerUid ? `profile-${detailPlayerUid}` : tab
+  const team = profile.favoriteTeam ? NFL_TEAMS_BY_ID[profile.favoriteTeam] : NFL_TEAMS_BY_ID.cowboys
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-hidden pb-28">
-      <AmbientBackground />
+      <LockerRoomBackground
+        team={team}
+        lockerSkin={profile.claimedLockerSkin}
+        lockerPickInitials={profile.claimedLockerPick}
+      />
 
-      <header className="glass-strong sticky top-0 z-40 border-b border-[var(--border)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/[0.08] backdrop-blur-xl" style={{ background: 'rgba(8,9,14,0.42)' }}>
         <div className="flex items-center justify-between px-3.5 py-3 sm:px-4">
           <div className="flex items-center gap-2.5">
-            <KSNLogo height={22} />
-            <div className="h-5 w-px bg-white/15" />
-            <TeamBadge team={profile.favoriteTeam ? NFL_TEAMS_BY_ID[profile.favoriteTeam] : null} size={32} />
+            <button onClick={() => setShowTeamPicker(true)}>
+              <TeamBadge team={team} size={32} />
+            </button>
             <Wordmark />
           </div>
           <div className="flex items-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setShowTeamPicker(true)}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-[var(--text-muted)]"
+            >
+              TEAM
+            </motion.button>
             <motion.button
               whileTap={{ scale: 0.94 }}
               onClick={() => setShowSettings(true)}
@@ -116,8 +135,15 @@ function AppShell({ uid }: { uid: string }) {
             </motion.button>
           </div>
         </div>
-        <Ticker />
+        <Ticker claimedTicker={profile.claimedTicker} />
       </header>
+
+      <TeamPickerSheet
+        open={showTeamPicker}
+        value={profile.favoriteTeam}
+        onChange={(newTeam) => void updateProfile(uid, { favoriteTeam: newTeam })}
+        onClose={() => setShowTeamPicker(false)}
+      />
 
       <main className="mx-auto w-full max-w-2xl flex-1 px-3.5 py-4 sm:px-4 sm:py-5">
         <PageTransition id={pageId}>
@@ -130,16 +156,22 @@ function AppShell({ uid }: { uid: string }) {
           ) : tab === 'home' ? (
             <div className="flex flex-col gap-4">
               <TodayStreakCard player={profile} />
+              <WeeklyPackCard
+                packAvailableWeek={profile.packAvailableWeek}
+                lastPackClaimedWeek={profile.lastPackClaimedWeek}
+                onOpen={() => setShowPack(true)}
+              />
               <WeeklyChallengeCard onSelectPlayer={handleSelectPlayer} />
               <RivalryStrip onSelectPlayer={handleSelectPlayer} />
               <WeeklyRecapCard onSelectPlayer={handleSelectPlayer} />
-              <Leaderboard onSelectPlayer={handleSelectPlayer} />
+              <LeaderboardPreview onSelectPlayer={handleSelectPlayer} claimedSpotlight={profile.claimedSpotlight} />
               <Feed currentUid={uid} />
             </div>
           ) : null}
           {tab === 'log' && (
             <LogGameForm
               currentUid={uid}
+              claimedModeToken={profile.claimedModeToken}
               onLogged={(payload) => {
                 setCelebration(payload)
                 handleTabChange('home')
@@ -151,6 +183,13 @@ function AppShell({ uid }: { uid: string }) {
           {tab === 'me' && <PlayerHistory currentUid={uid} />}
         </PageTransition>
       </main>
+
+      <PackModal
+        open={showPack}
+        onClose={() => setShowPack(false)}
+        team={team}
+        onClaim={(reward) => void claimPackReward(profile, reward)}
+      />
 
       <nav className="glass-strong fixed bottom-3 left-1/2 z-40 flex -translate-x-1/2 gap-0.5 rounded-full p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
         {TABS.map((t) => {

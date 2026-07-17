@@ -52,9 +52,7 @@ export function Feed({ currentUid }: { currentUid: string }) {
             hover={false}
           >
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">Top Story</p>
-            <p className="text-lg font-bold leading-snug text-white">
-              {headline.emoji} {headline.headline}
-            </p>
+            <p className="text-lg font-bold leading-snug text-white">{headline.headline}</p>
           </Card>
         )}
 
@@ -81,7 +79,10 @@ export function Feed({ currentUid }: { currentUid: string }) {
                           {g.loserIds.map(nameFor).join(' & ')}
                         </span>
                         <span className="flex shrink-0 items-center gap-2">
-                          <span className="text-base font-bold tracking-tight text-[var(--text)]">
+                          <span
+                            className="text-base font-bold tracking-tight text-[var(--text)]"
+                            style={{ fontFamily: 'var(--font-teko)', fontSize: '1.1rem' }}
+                          >
                             {g.winnerScore}-{g.loserScore}
                           </span>
                           {canEdit(g) && (
@@ -104,12 +105,12 @@ export function Feed({ currentUid }: { currentUid: string }) {
                         </span>
                         {g.isBlowout && (
                           <span className="rounded-full bg-rose-500/15 px-2 py-0.5 font-semibold text-rose-300">
-                            💥 Blowout
+                            Blowout
                           </span>
                         )}
                         {g.isComeback && (
                           <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-300">
-                            🔥 Comeback
+                            Comeback
                           </span>
                         )}
                       </div>
@@ -121,7 +122,7 @@ export function Feed({ currentUid }: { currentUid: string }) {
                               className="text-xs font-medium"
                               style={{ color: s.kind === 'highlight' ? 'var(--text)' : 'var(--text-muted)' }}
                             >
-                              {s.emoji} {s.headline}
+                              {s.headline}
                             </li>
                           ))}
                         </ul>
@@ -141,7 +142,7 @@ export function Feed({ currentUid }: { currentUid: string }) {
                           className="mt-2 inline-flex items-center gap-1 text-xs font-semibold"
                           style={{ color: 'var(--accent)' }}
                         >
-                          🎬 Watch clip →
+                          Watch clip →
                         </a>
                       )}
                       <ReactionBar gameId={g.id} currentUid={currentUid} reactions={g.reactions ?? {}} />
