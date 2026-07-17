@@ -103,7 +103,7 @@ function AppShell({ uid }: { uid: string }) {
         lockerPickInitials={profile.claimedLockerPick}
       />
 
-      <header className="sticky top-0 z-40 border-b border-white/[0.08] backdrop-blur-xl" style={{ background: 'rgba(8,9,14,0.42)' }}>
+      <header className="sticky top-0 z-40 border-b border-white/[0.08] backdrop-blur-xl" style={{ background: 'rgba(8,9,14,0.62)' }}>
         <div className="flex items-center justify-between px-3.5 py-3 sm:px-4">
           <div className="flex items-center gap-2.5">
             <button onClick={() => setShowTeamPicker(true)}>
