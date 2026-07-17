@@ -1,6 +1,7 @@
 import { collection, doc, runTransaction } from 'firebase/firestore'
 import { db } from '../firebase'
 import { evaluateNewBadges } from '../achievements/badgeRules'
+import { getIsoWeekKey } from '../achievements/packRewards'
 import { uploadClipPhoto } from './clipUpload'
 import { notifyAchievement } from '../utils/notifications'
 import type { GameMode, GameStatLine, MaddenVersion, Player } from '../types'
@@ -79,10 +80,19 @@ export async function logGame(input: LogGameInput) {
 
       if (uid === input.loggedBy) earnedByLogger.push(...newBadgeIds)
 
+      // Weekly pack availability is a personal-progression field, granted only to the
+      // logging user's own doc — never included in other participants' updates, since
+      // firestore.rules only allows non-owner writes to touch statsByMode/teamUsage/badges.
+      const isLogger = uid === input.loggedBy
+      const currentWeek = getIsoWeekKey()
+      const packUpdate =
+        isLogger && player.packAvailableWeek !== currentWeek ? { packAvailableWeek: currentWeek } : {}
+
       tx.update(playerRefs[i], {
         statsByMode: { ...player.statsByMode, [input.gameMode]: updatedModeStats },
         teamUsage: updatedTeamUsage,
         badges: [...player.badges, ...newBadgeIds],
+        ...packUpdate,
       })
     })
 

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #05060a;
+  --bg: #030407;
   --bg-elevated: #0c0e14;
   --surface: rgba(255, 255, 255, 0.055);
   --surface-strong: rgba(255, 255, 255, 0.09);
@@ -21,8 +21,19 @@
   --font-display: 'Outfit', system-ui, sans-serif;
   --font-wordmark: 'Outfit', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-teko: 'Teko', system-ui, sans-serif;
   --network-black: rgba(8, 9, 14, 0.55);
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  --tier-bronze: #a9713f;
+  --tier-bronze-2: #d69a67;
+  --tier-silver: #a7adb5;
+  --tier-silver-2: #c7ccd2;
+  --tier-gold: #d4af37;
+  --tier-gold-2: #f3d576;
+  --tier-legendary-border: #d4af37;
+  --tier-legendary-glow: #ffd76a;
+  --tier-legendary-text: #fff3c4;
 }
 
 * {
@@ -283,13 +294,34 @@ select option {
   animation: shimmer 4s linear infinite;
 }
 
+/* Locker room + pack modal motion */
+@keyframes locker-glow-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+
+@keyframes card-pop {
+  0% { transform: scale(0.4) rotateY(180deg); opacity: 0; }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+.locker-glow-pulse {
+  animation: locker-glow-pulse 6s ease-in-out infinite;
+}
+
+.card-pop {
+  animation: card-pop 0.6s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ambient-bg::before,
   .ambient-bg::after,
   .ambient-orb,
   .ticker-track,
   .shimmer-accent,
-  .confetti-piece {
+  .confetti-piece,
+  .locker-glow-pulse,
+  .card-pop {
     animation: none !important;
   }
 }

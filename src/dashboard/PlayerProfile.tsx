@@ -7,19 +7,91 @@ import { Card } from '../components/Card'
 import { NetworkHeading } from '../components/NetworkHeading'
 import { Button } from '../components/Button'
 import { ModeTabs } from '../components/ModeTabs'
-import { TeamPicker } from '../components/TeamPicker'
+import { TeamPickerSheet } from '../components/TeamPickerSheet'
 import { PlayerAvatar } from '../components/PlayerAvatar'
-import { PencilIcon } from '../components/icons'
+import { PencilIcon, TrophyIcon } from '../components/icons'
+import { NFL_TEAMS_BY_ID } from '../constants/nflTeams'
 import { BadgeCase } from '../achievements/BadgeCase'
 import { EditGameForm } from '../games/EditGameForm'
 import { notificationPermission, notificationsSupported, requestNotificationPermission } from '../utils/notifications'
 import { RankExplainer } from '../components/RankExplainer'
 import { computeApRankings } from '../stats/apRanking'
 import { GAME_MODES } from '../types'
-import type { GameDoc, GameMode, Player } from '../types'
+import type { GameDoc, GameMode, Player, PackRewardTier } from '../types'
 import type { TeamId } from '../constants/nflTeams'
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000
+
+const TIER_STYLES: Record<PackRewardTier, { border: string; glow: string; text: string }> = {
+  Bronze: { border: 'var(--tier-bronze)', glow: 'var(--tier-bronze-2)', text: 'var(--tier-bronze-2)' },
+  Silver: { border: 'var(--tier-silver)', glow: 'var(--tier-silver-2)', text: 'var(--tier-silver-2)' },
+  Gold: { border: 'var(--tier-gold)', glow: 'var(--tier-gold-2)', text: 'var(--tier-gold-2)' },
+  Legendary: {
+    border: 'var(--tier-legendary-border)',
+    glow: 'var(--tier-legendary-glow)',
+    text: 'var(--tier-legendary-text)',
+  },
+}
+const NO_TIER_STYLE = { border: 'var(--border-strong)', glow: 'transparent', text: 'var(--text-muted)' }
+
+function FoilProfileCard({ player, mode }: { player: Player; mode: GameMode }) {
+  const tier = player.claimedBorderTier ? TIER_STYLES[player.claimedBorderTier] : NO_TIER_STYLE
+  const stats = player.statsByMode[mode]
+  const outline = player.claimedNameplate === 'outline'
+
+  return (
+    <div
+      className="relative mx-auto w-full max-w-[280px] overflow-hidden rounded-[22px] p-[18px]"
+      style={{
+        aspectRatio: '0.7',
+        background: 'linear-gradient(155deg, #2a2416, #4a3d1a 45%, #1a1608)',
+        border: `2px solid ${tier.border}`,
+        boxShadow: `0 0 40px -8px ${tier.glow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
+      }}
+    >
+      <div className="shimmer-accent absolute inset-0 opacity-30" />
+      <p className="relative text-[10px] font-extrabold uppercase tracking-[0.2em]" style={{ color: tier.text }}>
+        {player.claimedBorderTier ?? 'Unranked'}
+      </p>
+      <div className="relative mt-3.5 flex justify-center">
+        <PlayerAvatar photoURL={player.photoURL} displayName={player.displayName} size={84} />
+      </div>
+      <p
+        className="relative mt-3.5 text-center text-2xl font-black text-white"
+        style={{
+          fontFamily: 'var(--font-teko)',
+          color: outline ? 'transparent' : undefined,
+          WebkitTextStroke: outline ? '1px white' : undefined,
+        }}
+      >
+        {player.displayName}
+      </p>
+      {player.favoriteTeam && (
+        <p className="relative text-center text-[11px] font-bold" style={{ color: tier.text }}>
+          {NFL_TEAMS_BY_ID[player.favoriteTeam].name}
+        </p>
+      )}
+      {player.claimedTitle && (
+        <p className="relative mt-1 text-center text-[10px] font-bold text-white">"{player.claimedTitle}"</p>
+      )}
+      <div
+        className="relative mt-4 flex justify-between border-t pt-2.5"
+        style={{ borderColor: 'rgba(243,213,118,0.35)' }}
+      >
+        <div>
+          <p className="m-0 text-[9px] text-white/50">W-L</p>
+          <p className="m-0 text-base font-extrabold text-white">
+            {stats.wins}-{stats.losses}
+          </p>
+        </div>
+        <div>
+          <p className="m-0 text-[9px] text-white/50">STREAK</p>
+          <p className="m-0 text-base font-extrabold text-white">{stats.currentStreak}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function NotificationToggle() {
   const [permission, setPermission] = useState(notificationPermission())
@@ -69,6 +141,7 @@ function ProfileEditor({ me }: { me: Player }) {
   const [saved, setSaved] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState<string | null>(null)
+  const [showTeamPicker, setShowTeamPicker] = useState(false)
 
   useEffect(() => {
     setDisplayName(me.displayName)
@@ -126,7 +199,31 @@ function ProfileEditor({ me }: { me: Player }) {
           />
         </label>
 
-        <TeamPicker label="Favorite team" value={favoriteTeam} onChange={setFavoriteTeam} id="me-favorite-team" />
+        <div className="flex flex-col gap-1 text-sm">
+          <span className="font-medium text-[var(--text)]">Favorite team</span>
+          <button
+            onClick={() => setShowTeamPicker(true)}
+            className="flex items-center gap-2 self-start rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
+          >
+            {favoriteTeam && (
+              <span
+                className="h-5 w-5 rounded-md"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${NFL_TEAMS_BY_ID[favoriteTeam].primary}, ${NFL_TEAMS_BY_ID[favoriteTeam].secondary})`,
+                }}
+              />
+            )}
+            <span className="text-sm">{favoriteTeam ? NFL_TEAMS_BY_ID[favoriteTeam].name : 'Choose a team'}</span>
+            <span className="text-xs font-semibold text-[var(--accent)]">Change</span>
+          </button>
+        </div>
+
+        <TeamPickerSheet
+          open={showTeamPicker}
+          value={favoriteTeam}
+          onChange={setFavoriteTeam}
+          onClose={() => setShowTeamPicker(false)}
+        />
 
         <Button onClick={handleSave} disabled={!dirty || saving} className="self-start">
           {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save changes'}
@@ -222,6 +319,30 @@ export function PlayerProfile({
         >
           ← Back
         </button>
+      )}
+
+      <FoilProfileCard player={player} mode={mode} />
+
+      {player.trophies.length > 0 && (
+        <Card>
+          <div className="mb-3">
+            <NetworkHeading size="md">Trophy Case</NetworkHeading>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            {player.trophies.map((trophy) => (
+              <div
+                key={trophy.id}
+                className="rounded-2xl border border-[var(--tier-bronze)] px-2 py-3 text-center"
+                style={{ background: 'linear-gradient(160deg, rgba(169,113,63,0.18), rgba(0,0,0,0.25))' }}
+              >
+                <div className="mx-auto mb-1.5 w-fit" style={{ color: 'var(--tier-bronze-2)' }}>
+                  <TrophyIcon size={22} />
+                </div>
+                <p className="text-[9px] font-extrabold text-white">{trophy.name}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       <Card>

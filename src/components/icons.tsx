@@ -65,3 +65,29 @@ export function PencilIcon({ size = 16 }: IconProps) {
     </svg>
   )
 }
+
+export function FlameIcon({ size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M4 12h5l3-8 3 16 3-8h5" />
+    </svg>
+  )
+}
+
+export function TrophyIcon({ size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M8 21h8M12 17v4M6 4h12v3a6 6 0 0 1-12 0V4z" />
+      <path d="M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3" />
+    </svg>
+  )
+}
+
+export function FootballIcon({ size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-30 12 12)" />
+      <path d="M7 12h10M9 9.5l1 1M9 14.5l1-1M15 9.5l-1 1M15 14.5l-1-1" />
+    </svg>
+  )
+}

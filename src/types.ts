@@ -51,6 +51,13 @@ export const emptyPlayerStats = (): PlayerStats => ({
   bestStreak: 0,
 })
 
+export type PackRewardTier = 'Bronze' | 'Silver' | 'Gold' | 'Legendary'
+
+export interface Trophy {
+  id: string
+  name: string
+}
+
 export interface Player {
   uid: string
   displayName: string
@@ -63,6 +70,17 @@ export interface Player {
   badges: string[]
   mustChangePassword: boolean
   createdAt: number
+  claimedTitle: string | null
+  claimedTicker: string | null
+  claimedBorderTier: PackRewardTier | null
+  claimedNameplate: 'outline' | null
+  claimedModeToken: boolean
+  claimedSpotlight: string | null
+  claimedLockerPick: string | null
+  claimedLockerSkin: 'vertical' | 'diagonal'
+  trophies: Trophy[]
+  packAvailableWeek: string | null
+  lastPackClaimedWeek: string | null
 }
 
 export interface GameStatLine {

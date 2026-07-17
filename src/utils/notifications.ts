@@ -1,4 +1,5 @@
 import { BADGES } from '../achievements/badgeRules'
+import type { PackRewardDef } from '../achievements/packRewards'
 
 export function notificationsSupported() {
   return typeof window !== 'undefined' && 'Notification' in window
@@ -24,6 +25,18 @@ export function notifyAchievement(badgeId: string) {
     new Notification(`${badge.emoji} Badge earned: ${badge.label}`, {
       body: badge.description,
       tag: `badge-${badgeId}-${Date.now()}`,
+    })
+  } catch {
+    // Notification constructor can throw on some mobile browsers; safe to ignore.
+  }
+}
+
+export function notifyPackClaim(reward: PackRewardDef) {
+  if (!notificationsSupported() || Notification.permission !== 'granted') return
+  try {
+    new Notification(`${reward.tier} reward claimed: ${reward.name}`, {
+      body: reward.description,
+      tag: `pack-${reward.id}-${Date.now()}`,
     })
   } catch {
     // Notification constructor can throw on some mobile browsers; safe to ignore.

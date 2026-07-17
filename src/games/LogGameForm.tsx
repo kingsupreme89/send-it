@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePlayers } from '../players/usePlayers'
 import { logGame } from './useLogGame'
-import { GAME_MODES, MADDEN_VERSIONS, emptyGameStatLine, type GameMode, type GameStatLine, type MaddenVersion } from '../types'
+import { MADDEN_VERSIONS, emptyGameStatLine, type GameMode, type GameStatLine, type MaddenVersion } from '../types'
 import { extractGameDataFromImage, type ParsedGameFields } from '../utils/ocrStats'
 import type { TeamId } from '../constants/nflTeams'
 import { TeamPicker } from '../components/TeamPicker'
 import { NetworkHeading } from '../components/NetworkHeading'
 import { PlayerPicker } from '../components/PlayerPicker'
+import { ModeTabs } from '../components/ModeTabs'
 import { StatInput } from '../components/StatInput'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -16,9 +17,11 @@ import type { CelebrationPayload } from '../components/WinCelebration'
 export function LogGameForm({
   currentUid,
   onLogged,
+  claimedModeToken = false,
 }: {
   currentUid: string
   onLogged: (celebration: CelebrationPayload) => void
+  claimedModeToken?: boolean
 }) {
   const { players } = usePlayers()
   const [gameMode, setGameMode] = useState<GameMode>('1v1_regular')
@@ -221,37 +224,35 @@ export function LogGameForm({
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-[var(--text)]">Mode</span>
-            <select
-              value={gameMode}
-              onChange={(e) => setGameMode(e.target.value as GameMode)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
-            >
-              {GAME_MODES.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-[var(--text)]">Madden version</span>
-            <select
-              value={maddenVersion}
-              onChange={(e) => setMaddenVersion(e.target.value as MaddenVersion)}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
-            >
-              {MADDEN_VERSIONS.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">Mode</span>
+            {claimedModeToken && (
+              <span
+                className="rounded-full px-2 py-0.5 text-[9px] font-extrabold tracking-wide text-white"
+                style={{ background: 'color-mix(in srgb, var(--accent) 35%, transparent)' }}
+              >
+                2X VOTE ACTIVE
+              </span>
+            )}
+          </div>
+          <ModeTabs value={gameMode} onChange={setGameMode} />
         </div>
+
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium text-[var(--text)]">Madden version</span>
+          <select
+            value={maddenVersion}
+            onChange={(e) => setMaddenVersion(e.target.value as MaddenVersion)}
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
+          >
+            {MADDEN_VERSIONS.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         {is2v2 && (
           <PlayerPicker
@@ -298,27 +299,29 @@ export function LogGameForm({
           <TeamPicker label="Challenger's team" value={loserTeam} onChange={setLoserTeam} />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-[var(--text)]">Your score</span>
+        <div className="grid grid-cols-2 gap-2.5">
+          <label className="flex flex-col items-center gap-1.5 rounded-2xl border border-[var(--border)] bg-black/25 p-3.5 text-center">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)]">Your score</span>
             <input
               type="number"
               min={0}
               value={winnerScore}
               onChange={(e) => setWinnerScore(e.target.value)}
               onFocus={(e) => e.target.select()}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
+              className="w-full border-none bg-transparent text-center text-[34px] font-black text-white"
+              style={{ fontFamily: 'var(--font-teko)' }}
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-[var(--text)]">Opponent score</span>
+          <label className="flex flex-col items-center gap-1.5 rounded-2xl border border-[var(--border)] bg-black/25 p-3.5 text-center">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-muted)]">Opponent</span>
             <input
               type="number"
               min={0}
               value={loserScore}
               onChange={(e) => setLoserScore(e.target.value)}
               onFocus={(e) => e.target.select()}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]"
+              className="w-full border-none bg-transparent text-center text-[34px] font-black text-white"
+              style={{ fontFamily: 'var(--font-teko)' }}
             />
           </label>
         </div>
@@ -436,8 +439,8 @@ export function LogGameForm({
 
         {submitError && <p className="text-xs font-medium text-red-400">{submitError}</p>}
 
-        <Button onClick={handleSubmit} disabled={!canSubmit}>
-          {submitting ? 'Saving...' : 'Log game'}
+        <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">
+          {submitting ? 'SAVING...' : 'SEND IT'}
         </Button>
       </div>
     </Card>
