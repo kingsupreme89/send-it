@@ -15,10 +15,10 @@ export function Ticker({ claimedTicker }: { claimedTicker?: string | null }) {
   const content = headlines.join('     •     ')
 
   return (
-    <div className="overflow-hidden border-t border-white/5 bg-black/25">
+    <div className="overflow-hidden border-t border-white/5 bg-black/45">
       <div className="ticker-track py-1.5">
-        <span className="px-4 text-[11px] font-bold text-white/55">{content}</span>
-        <span className="px-4 text-[11px] font-bold text-white/55" aria-hidden="true">{content}</span>
+        <span className="px-4 text-[11px] font-bold text-white/70">{content}</span>
+        <span className="px-4 text-[11px] font-bold text-white/70" aria-hidden="true">{content}</span>
       </div>
     </div>
   )
