@@ -43,6 +43,17 @@ export async function createProfile(user: User, displayName: string, favoriteTea
     badges: [],
     mustChangePassword: true,
     createdAt: Date.now(),
+    claimedTitle: null,
+    claimedTicker: null,
+    claimedBorderTier: null,
+    claimedNameplate: null,
+    claimedModeToken: false,
+    claimedSpotlight: null,
+    claimedLockerPick: null,
+    claimedLockerSkin: 'vertical',
+    trophies: [],
+    packAvailableWeek: null,
+    lastPackClaimedWeek: null,
   } satisfies Omit<Player, 'createdAt'> & { createdAt: number })
 }
 
