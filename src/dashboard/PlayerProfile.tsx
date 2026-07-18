@@ -323,13 +323,13 @@ export function PlayerProfile({
 
       <FoilProfileCard player={player} mode={mode} />
 
-      {player.trophies.length > 0 && (
+      {(player.trophies ?? []).length > 0 && (
         <Card>
           <div className="mb-3">
             <NetworkHeading size="md">Trophy Case</NetworkHeading>
           </div>
           <div className="grid grid-cols-3 gap-2.5">
-            {player.trophies.map((trophy) => (
+            {(player.trophies ?? []).map((trophy) => (
               <div
                 key={trophy.id}
                 className="rounded-2xl border border-[var(--tier-bronze)] px-2 py-3 text-center"
