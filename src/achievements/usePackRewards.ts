@@ -32,7 +32,7 @@ function effectFieldsFor(reward: PackRewardDef, player: Player): Partial<Player>
     case 'stat_spotlight':
       return { claimedSpotlight: 'Passing yds' }
     case 'trophy_case':
-      return { trophies: [...player.trophies, { id: 'iron_will', name: 'Iron Will' }] }
+      return { trophies: [...(player.trophies ?? []), { id: 'iron_will', name: 'Iron Will' }] }
     default:
       return {}
   }
